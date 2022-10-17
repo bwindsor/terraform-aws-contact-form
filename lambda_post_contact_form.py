@@ -1,3 +1,4 @@
+import base64
 import boto3
 from boto3.dynamodb.conditions import Attr
 from typing import Optional
@@ -21,7 +22,11 @@ dynamodb_table = dynamodb_resource.Table(DATABASE_TABLE_NAME)
 
 
 def handler(event, context):
-    form_data = {k: v[-1] for k, v in parse_qs(event['body']).items()}
+    body = event['body']
+    if event['isBase64Encoded'] is True:
+        body = base64.b64decode(body).decode('utf8')
+
+    form_data = {k: v[-1] for k, v in parse_qs(body).items()}
     if not validate_contact_form(form_data):
         return make_error_response(400, "Invalid form data", event)
 
