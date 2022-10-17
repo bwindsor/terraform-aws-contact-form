@@ -84,7 +84,7 @@ def forward_contact_form_to_email(form_data: dict):
 
     print(f"Attempting to send email message")
     ses_client.send_email(
-        Source=f"{name} <{FROM_EMAIL_ADDRESS}>",
+        Source=f"Contact form - {name} <{FROM_EMAIL_ADDRESS}>",
         Destination={
             "ToAddresses": TARGET_EMAIL_ADDRESSES
         },
