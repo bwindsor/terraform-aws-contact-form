@@ -2,7 +2,7 @@ resource "aws_dynamodb_table" "data" {
   name         = "${var.deployment_name}-contact-form"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "email"
-  sort_key     = "submission_id"
+  range_key     = "submission_id"
 
   attribute {
     name = "email"
