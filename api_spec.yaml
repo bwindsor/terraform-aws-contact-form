@@ -1,0 +1,55 @@
+openapi: 3.0.0
+
+paths:
+  /contactform:
+    post:
+      summary: Post contact form data
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                email:
+                  type: string
+                message:
+                  type: string
+              required:
+                - name
+                - email
+                - message
+      responses:
+        '200':
+          description: Successfully sent message
+          content:
+            text/plain:
+              schema:
+                type: string
+        '400':
+          $ref: '#/components/responses/bad-request-response'
+      x-amazon-apigateway-integration:
+        $ref: '#/components/x-amazon-apigateway-integrations/post_contact_form'
+
+components:
+  responses:
+    bad-request-response:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Bad request"
+            required:
+              - message
+  x-amazon-apigateway-integrations:
+    post_contact_form:
+      type: aws_proxy
+      httpMethod: POST
+      uri: '${lambda_post_contact_form_invoke_arn}'
+      payloadFormatVersion: '2.0'
