@@ -27,9 +27,9 @@ resource "aws_lambda_function" "lambda_function" {
     variables = {
       env = terraform.workspace
       DATABASE_TABLE_NAME = aws_dynamodb_table.data.name
-      IS_MESSAGE_REQUIRED = var.require_message
+      IS_MESSAGE_REQUIRED = var.require_message ? 1 : 0
       ACCESS_CONTROL_ALLOWED_ORIGINS = join(",", var.access_control_allow_origin)
-      ENABLE_EMAIL_FORWARD = var.email_config != null
+      ENABLE_EMAIL_FORWARD = var.email_config == null ? 0 : 1
       FROM_EMAIL_ADDRESS = var.email_config == null ? "" : var.email_config.from_address
       TARGET_EMAIL_ADDRESSES = var.email_config == null ? "" : join(",", var.email_config.to_addresses)
     }
