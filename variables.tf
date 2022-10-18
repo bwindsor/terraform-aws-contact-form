@@ -28,3 +28,9 @@ variable "alarm_sns_topic_arn" {
   type = string
   default = null
 }
+
+variable "additional_fields" {
+  description = "List of additional field names to collect"
+  type = list(string)
+  default = []
+}

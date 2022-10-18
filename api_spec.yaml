@@ -20,7 +20,6 @@ paths:
               required:
                 - name
                 - email
-                - message
       responses:
         '200':
           description: Successfully sent message

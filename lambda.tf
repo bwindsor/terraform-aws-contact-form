@@ -32,6 +32,7 @@ resource "aws_lambda_function" "lambda_function" {
       ENABLE_EMAIL_FORWARD = var.email_config == null ? 0 : 1
       FROM_EMAIL_ADDRESS = var.email_config == null ? "" : var.email_config.from_address
       TARGET_EMAIL_ADDRESSES = var.email_config == null ? "" : join(",", var.email_config.to_addresses)
+      ADDITIONAL_FIELDS = join(",", var.additional_fields)
     }
   }
 }

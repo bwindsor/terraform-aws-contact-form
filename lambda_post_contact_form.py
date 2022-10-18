@@ -1,19 +1,26 @@
 import base64
+import html
 import boto3
 from boto3.dynamodb.conditions import Attr
-from typing import Optional
+from typing import Optional, List
 import json
 import os
 import uuid
 from urllib.parse import parse_qs
 
+
+def parse_csv_environ(env_var_name: str) -> List[str]:
+    return [s.strip() for s in os.environ[env_var_name].split(',')]
+
+
 DATABASE_TABLE_NAME = os.environ['DATABASE_TABLE_NAME']
 IS_MESSAGE_REQUIRED = bool(int(os.environ['IS_MESSAGE_REQUIRED']))
-ACCESS_CONTROL_ALLOWED_ORIGINS = [s.strip() for s in os.environ['ACCESS_CONTROL_ALLOWED_ORIGINS'].split(',')]
+ACCESS_CONTROL_ALLOWED_ORIGINS = parse_csv_environ('ACCESS_CONTROL_ALLOWED_ORIGINS')
+ADDITIONAL_FIELDS = parse_csv_environ('ADDITIONAL_FIELDS')
 ENABLE_EMAIL_FORWARD = bool(int(os.environ['ENABLE_EMAIL_FORWARD']))
 if ENABLE_EMAIL_FORWARD:
     FROM_EMAIL_ADDRESS = os.environ['FROM_EMAIL_ADDRESS']
-    TARGET_EMAIL_ADDRESSES = [s.strip() for s in os.environ['TARGET_EMAIL_ADDRESSES'].split(',')]
+    TARGET_EMAIL_ADDRESSES = parse_csv_environ('TARGET_EMAIL_ADDRESSES')
 
 ses_client = boto3.client('ses')
 
@@ -49,6 +56,9 @@ def validate_contact_form(form_data: dict) -> bool:
         valid = False
     if IS_MESSAGE_REQUIRED and 'message' not in form_data:
         valid = False
+    for additional_field in ADDITIONAL_FIELDS:
+        if additional_field not in form_data:
+            valid = False
 
     if not valid:
         print(f"Invalid form data: {form_data}")
@@ -59,6 +69,7 @@ def save_contact_form_to_database(form_data: dict):
     name = form_data['name']
     email = form_data['email']
     message = form_data.get('message')
+    additional_fields = {f: form_data[f] for f in ADDITIONAL_FIELDS}
 
     submission_id = uuid.uuid4().hex
 
@@ -66,6 +77,7 @@ def save_contact_form_to_database(form_data: dict):
         email=email,
         submission_id=submission_id,
         name=name,
+        **additional_fields,
     )
     if IS_MESSAGE_REQUIRED:
         item.update(message=message)
@@ -80,7 +92,8 @@ def save_contact_form_to_database(form_data: dict):
 def forward_contact_form_to_email(form_data: dict):
     name = form_data['name']
     email = form_data['email']
-    message = form_data['message']
+    email_body_lines = [f"Message: {form_data['message']}", *[f"{f}: {form_data[f]}" for f in ADDITIONAL_FIELDS]]
+    email_body_text = '\n'.join(email_body_lines)
 
     print(f"Attempting to send email message")
     ses_client.send_email(
@@ -94,7 +107,7 @@ def forward_contact_form_to_email(form_data: dict):
             },
             "Body": {
                 "Text": {
-                    "Data": message
+                    "Data": email_body_text
                 }
             }
         },
