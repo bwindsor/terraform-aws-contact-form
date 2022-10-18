@@ -33,7 +33,7 @@ def handler(event, context):
     if event['isBase64Encoded'] is True:
         body = base64.b64decode(body).decode('utf8')
 
-    form_data = {k: v[-1] for k, v in parse_qs(body).items()}
+    form_data = {k: v[-1] for k, v in parse_qs(body, keep_blank_values=True).items()}
     if not validate_contact_form(form_data):
         return make_error_response(400, "Invalid form data", event)
 
@@ -92,7 +92,7 @@ def save_contact_form_to_database(form_data: dict):
 def forward_contact_form_to_email(form_data: dict):
     name = form_data['name']
     email = form_data['email']
-    email_body_lines = [f"Message: {form_data['message']}", *[f"{f}: {form_data[f]}" for f in ADDITIONAL_FIELDS]]
+    email_body_lines = [f"Message: {form_data['message']}", *[f"{f.title()}: {form_data[f]}" for f in ADDITIONAL_FIELDS]]
     email_body_text = '\n'.join(email_body_lines)
 
     print(f"Attempting to send email message")
