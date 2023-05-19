@@ -30,7 +30,13 @@ variable "alarm_sns_topic_arn" {
 }
 
 variable "additional_fields" {
-  description = "List of additional field names to collect"
+  description = "List of required additional field names to collect"
+  type = list(string)
+  default = []
+}
+
+variable "optional_additional_fields" {
+  description = "List of optional additional field names to collect"
   type = list(string)
   default = []
 }

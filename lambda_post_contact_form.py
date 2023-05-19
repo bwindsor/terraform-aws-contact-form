@@ -17,6 +17,7 @@ DATABASE_TABLE_NAME = os.environ['DATABASE_TABLE_NAME']
 IS_MESSAGE_REQUIRED = bool(int(os.environ['IS_MESSAGE_REQUIRED']))
 ACCESS_CONTROL_ALLOWED_ORIGINS = parse_csv_environ('ACCESS_CONTROL_ALLOWED_ORIGINS')
 ADDITIONAL_FIELDS = parse_csv_environ('ADDITIONAL_FIELDS')
+OPTIONAL_ADDITIONAL_FIELDS = parse_csv_environ('OPTIONAL_ADDITIONAL_FIELDS')
 ENABLE_EMAIL_FORWARD = bool(int(os.environ['ENABLE_EMAIL_FORWARD']))
 if ENABLE_EMAIL_FORWARD:
     FROM_EMAIL_ADDRESS = os.environ['FROM_EMAIL_ADDRESS']
@@ -70,6 +71,7 @@ def save_contact_form_to_database(form_data: dict):
     email = form_data['email']
     message = form_data.get('message')
     additional_fields = {f: form_data[f] for f in ADDITIONAL_FIELDS}
+    optional_additional_fields = {f: form_data[f] for f in OPTIONAL_ADDITIONAL_FIELDS if f in form_data}
 
     submission_id = uuid.uuid4().hex
 
@@ -78,6 +80,7 @@ def save_contact_form_to_database(form_data: dict):
         submission_id=submission_id,
         name=name,
         **additional_fields,
+        **optional_additional_fields
     )
     if IS_MESSAGE_REQUIRED:
         item.update(message=message)
@@ -92,7 +95,11 @@ def save_contact_form_to_database(form_data: dict):
 def forward_contact_form_to_email(form_data: dict):
     name = form_data['name']
     email = form_data['email']
-    email_body_lines = [f"Message: {form_data['message']}", *[f"{f.title()}: {form_data[f]}" for f in ADDITIONAL_FIELDS]]
+    email_body_lines = [
+        f"Message: {form_data['message']}",
+        *[f"{f.title()}: {form_data[f]}" for f in ADDITIONAL_FIELDS],
+        *[f"{f.title()}: {form_data[f]}" for f in OPTIONAL_ADDITIONAL_FIELDS if f in form_data],
+    ]
     email_body_text = '\n'.join(email_body_lines)
 
     print(f"Attempting to send email message")

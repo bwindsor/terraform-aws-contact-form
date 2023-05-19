@@ -33,6 +33,7 @@ resource "aws_lambda_function" "lambda_function" {
       FROM_EMAIL_ADDRESS = var.email_config == null ? "" : var.email_config.from_address
       TARGET_EMAIL_ADDRESSES = var.email_config == null ? "" : join(",", var.email_config.to_addresses)
       ADDITIONAL_FIELDS = join(",", var.additional_fields)
+      OPTIONAL_ADDITIONAL_FIELDS = join(",", var.optional_additional_fields)
     }
   }
 }
