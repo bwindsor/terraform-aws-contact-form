@@ -97,6 +97,7 @@ def forward_contact_form_to_email(form_data: dict):
     email = form_data['email']
     email_body_lines = [
         f"Message: {form_data['message']}",
+        f"From email: {email}",
         *[f"{f.title()}: {form_data[f]}" for f in ADDITIONAL_FIELDS],
         *[f"{f.title()}: {form_data[f]}" for f in OPTIONAL_ADDITIONAL_FIELDS if f in form_data],
     ]
